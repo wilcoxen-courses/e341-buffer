@@ -1,87 +1,69 @@
-# Exercise: Selecting Parcels Near an Interstate
+# Exercise: Building a Buffer Around a Highway
 
 ### Summary
 
-This exercise uses QGIS to identify tax parcels that are near one of 
-the Interstate highways in Onondaga County.
+This exercise uses geopandas to project Census shapefiles appropriately for New York State. It then builds several map layers for Onondaga County, including a 1-km buffer around the county's interstate highways.
 
 ### Input Data
 
-There are three input files. The first two are TIGER/Line shapefiles that 
-will be downloaded from the Census below. The third is a file of tax 
-parcel centroids called `Onondaga-Tax-Parcels-Centroid-Points-SHP.zip`
-that can be downloaded from the class Google Drive directory for this
-exercise.
+There are two input files, both of which are TIGER/Line shapefiles that will be downloaded from the Census in part A of the instructions.
 
 ### Deliverables
 
-There are three deliverables: a QGIS project file called **highway.qgz**, 
-a GeoPackage file called **onondaga.gpkg**, and a PNG file called 
-**highway.png**.
+There are three deliverables: a script called **onondaga.py**, a QGIS project file called **highway.qgz**, and an image file called **highway.png**.
 
 ### Instructions
 
-1. Go to the Census TIGER/Line page and then to the web interface. Select 
-2018 and then download two layers: (1) "Counties (and equivalent)", which 
-should be `tl_2018_us_county.zip`, and (2) "Roads" -> "Primary and 
-Secondary Roads" -> "New York", which should be `tl_2018_36_prisecroads.zip`.
+**A. Downloading files from the Census**
 
-1. Load the counties layer into QGIS and filter it down to Onondaga 
-County using `"STATEFP"` equal to `'36'` and `"COUNTYFP"` equal to `'067'`.
-Note that single and double quotes are **not** equivalent in QGIS: double 
-quotes are used with variable names and single quotes are used with 
-strings. If you build the query by clicking on the variable name under 
-"Fields" and the value under "Values" QGIS will use the correct 
-quoting.
+1. Go to the Census TIGER/Line page (there's a link on the class web site) and then click on the link for the web interface. Select 2020 and then download two files: "Counties (and equivalent)", which should be `tl_2020_us_county.zip`, and "Roads > Primary and Secondary Roads > New York", which should be `tl_2020_36_prisecroads.zip`.
 
-1. Change the project projection using the button with the globe icon
-at the lower right. Set it to EPSG:6347 "NAD83(2011) / UTM Zone 18N", which 
-is the New York State GIS Clearinghouse recommended projection. The county 
-should become narrower and look like it usually does in other maps.
+**B. Script onondaga.py**
 
-1. Export the resulting layer to a GeoPackage file called `onondaga.gpkg`
-in the GitHub directory for the assignment. Call the layer itself 
-`boundary` and make sure the "Add saved file to map" box is checked. Then 
-remove the original layer to leave a single layer called 
-`onondaga boundary`.
+1. Import `geopandas`.
 
-1. Add the roads layer to the map. Then filter it down to interstates only 
-using `"RTTYP"` equal to `'I'`.
+1. Use the `geopandas.read_file()` function to read the Census county shapefile into a variable called `county`. 
 
-1. Now clip the roads using the county boundary. Export the layer to 
-the GeoPackage file you created above but use the layer name `interstates`
-and set the coordinate reference system (CRS) to the project CRS, which 
-should now be EPSG:6347. 
+1. Create a variable called `on_county` by using the `.query()` method of `county` to select Onondaga County using its state and county FIPS codes. The columns for the FIPS codes are `"STATEFP"` and `"COUNTYFP"`. The state and county codes for Onondaga are probably familiar by now but just to avoid confusion they are `"36"` and `"067"`.
 
-1. Remove both the original road layer and the layer called `Clipped`.
-You should end up with two layers: one called `onondaga boundary` and 
-one called `onondaga interstates`.
+1. Create a variable called `on_border` that is equal to the `"geometry"` field of `on_county`. It will be the polygon describing the county's border and will be used below to clip the road layer.
 
-1. Select `onondaga interstates` and create a buffer using a distance of 
-500 meters. Scroll down and check the "Dissolve result" box. Save the 
-buffer in the GeoPackage file with the layer name `buffer 500m`. Then 
-remove the `Buffered` layer.
+1. Use the `geopandas.read_file()` function to read the primary and secondary roads file into a variable called `roads`. 
 
-1. Add the tax parcel centroid layer.
+1. Create a variable called `interstates` by using the `.query()` method of `roads` to select the records where the route type, `"RTTYP"`, is equal to `"I"`, the code for interstates. 
 
-1. Clip the parcel layer using `buffer 500m` as the overlay. 
+1. Now clip the interstate layer at the county boundary by calling the `geopandas.clip()` function with three arguments: `interstates`, which is the layer to be clipped, `on_border`, the polygon created above that indicates the border for clipping, and `keep_geom_type=True`, which indicates that the clipped file should have only features of the type originally in the layer being clipped (lines, in this case). Without the `keep_geom_type=True` argument, the clipped layer will also include a separate set of points at the places where the roads cross the county boundary. 
 
-1. Uncheck the original parcel layer. That should leave the parcels that 
-are within 500 meters of the highways.
+1. Now build a projected version of the county border using the projection recommended for the state by the New York State GIS Clearinghouse: NAD83(2011)/UTM Zone 18N, which is also known as EPSG:6347. Set `pro_county` to the result of calling the `.to_crs()` method of `on_county` using argument `epsg=6347`. For future reference, the units of the projected coordinate system will be meters.
 
-1. Save the project in the GitHub directory as `highway.qgz`.
+1. Create a projected version of the interstate layer called `pro_interstates` using a similar approach.
 
-1. Export the map to a PNG file called `highway.png`.
+1. Now dissolve the polygons in the projected interstate layer to create a single feature representing all of the interstates in the county. The dissolved layer should be called `dis_interstates` and it should be created by calling the `.dissolve()` method of `pro_interstates` with the arguments `by="RTTYP"` and `aggfunc="first"`. See the Tips section for more information about what dissolving a layer does.
+    
+1. Now create a layer called `buffer` that is equal to the result of calling the `.buffer()` method of `dis_interstates` with argument `1000`. Because the units of the coordinate system are meters, the 1000 indicates that the buffer should be 1000 meters, or 1 km, wide.
+
+1. Save `pro_county` to a geopackage file by using its `.to_file()` method with `"onondaga.gpkg"` as the file name, `"county"` as the layer name, and `"GPKG"` as the driver.
+
+1. Save `pro_interstates` to the same geopackage file but with layer name `"interstates"`.
+
+1. Save `buffer` to the same geopackage file but with layer name `"buffer"`.
+
+**C. Files highway.qgz and highway.png**
+
+1. Start QGIS and load the geopackage file created by the previous script.
+
+1. Stack the layers so that the interstate layer is on top, then the buffer, and then the county. 
+
+1. Set the colors as you see fit and then save the project file as `"highway.qgz"`. 
+
+1. Finally, export the map to a PNG file called `highway.png`.
 
 ### Submitting
 
-Once you're happy with everything and have committed all of the changes to
-your local repository, please push the changes to GitHub. At that point, 
-you're done: you have submitted your answer.
+Once you're happy with everything and have committed all of the changes to your local repository, please push the changes to GitHub. At that point, you're done: you have submitted your answer.
 
 ### Tips
 
-+ In practice, a study like this would usually go further by exporting the 
-clipped parcels to a CSV file so they could be subjected to further 
-statistical analysis. We'll do that in a subsequent exercise involving 
-additional buffers.
++ Dissolving a layer is a form of aggregation and is the geographic equivalent of combining the Pandas `groupby()` and `agg()` functions. The `by=` argument indicates how the groups should be formed: here it says that all features with the same value of `"RTTYP"` should be grouped together (all the interstate segments, in this case). The `aggfunc=` argument indicates how the attributes for the grouped data are to be set. Here, `"first"` says that the attributes should be set to their values for the first object in each group. There are a number of options, including `"first"`, `"last"`, `"sum"`, `"max"`, `"mean"`, and `"median"`. However, we're not going to use the attributes so we'll use `"first"` for simplicity since it works for both string and numeric fields. It's also the default if no option is specified.
+
++ This is the start of a multi-part exercise that will involve classifying residential properties in the county by their proximity to the interstates.
