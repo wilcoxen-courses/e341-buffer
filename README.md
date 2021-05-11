@@ -32,11 +32,11 @@ There are three deliverables: a script called **onondaga.py**, a QGIS project fi
 
 1. Create a variable called `interstates` by using the `.query()` method of `roads` to select the records where the route type, `"RTTYP"`, is equal to `"I"`, the code for interstates. 
 
-1. Now clip the interstate layer at the county boundary by calling the `geopandas.clip()` function with three arguments: `interstates`, which is the layer to be clipped, `on_border`, the polygon created above that indicates the border for clipping, and `keep_geom_type=True`, which indicates that the clipped file should have only features of the type originally in the layer being clipped (lines, in this case). Without the `keep_geom_type=True` argument, the clipped layer will also include a separate set of points at the places where the roads cross the county boundary. 
+1. Now clip the interstate layer at the county boundary by setting `on_interstates` to the result of calling the `geopandas.clip()` function with three arguments: `interstates`, which is the layer to be clipped, `on_border`, the polygon created above that indicates the border for clipping, and `keep_geom_type=True`, which indicates that the clipped file should have only features of the type originally in the layer being clipped (lines, in this case). Without the `keep_geom_type=True` argument, the clipped layer will also include a separate set of points at the places where the roads cross the county boundary. 
 
 1. Now build a projected version of the county border using the projection recommended for the state by the New York State GIS Clearinghouse: NAD83(2011)/UTM Zone 18N, which is also known as EPSG:6347. Set `pro_county` to the result of calling the `.to_crs()` method of `on_county` using argument `epsg=6347`. For future reference, the units of the projected coordinate system will be meters.
 
-1. Create a projected version of the interstate layer called `pro_interstates` using a similar approach.
+1. Create a projected version of the interstate layer called `pro_interstates` by applying `.to_crs()` to `on_interstates`.
 
 1. Now dissolve the polygons in the projected interstate layer to create a single feature representing all of the interstates in the county. The dissolved layer should be called `dis_interstates` and it should be created by calling the `.dissolve()` method of `pro_interstates` with the arguments `by="RTTYP"` and `aggfunc="first"`. See the Tips section for more information about what dissolving a layer does.
     
