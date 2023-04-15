@@ -97,10 +97,10 @@ near_clip = near_water.clip(county,keep_geom_type=True)
 if os.path.exists(out_file):
     os.remove(out_file)
 
-zips.to_file(out_file,layer='zips_all',index=False)
-zips_clip.to_file(out_file,layer='zips_clipped',index=False)
-water_by_name.to_file(out_file,layer='water_bodies',index=False)
-near_clip.to_file(out_file,layer='near_water',index=False)
+zips.to_file(out_file,layer='zips_all')
+zips_clip.to_file(out_file,layer='zips_clipped')
+water_by_name.to_file(out_file,layer='water_bodies')
+near_clip.to_file(out_file,layer='near_water')
 
 #%%
 #
