@@ -70,11 +70,11 @@ There is one deliverables: a script called **onondaga.py** that builds a geopack
 
     _Save the results in a geopackage:_
 
-1. Save `on_border` to a geopackage file by using its `.to_file()` method with `out_file` as the file name, `"county"` as the layer name, and `index=False`.
+1. Save `on_border` to a geopackage file by using its `.to_file()` method with `out_file` as the file name and `"county"` as the layer name.
 
-1. Save `on_int_dis` to the same geopackage file but with layer name `"interstates"`, and `index=False`.
+1. Save `on_int_dis` to the same geopackage file but with layer name `"interstates"`.
 
-1. Save `buffer` to the same geopackage file but with layer name `"buffer"`, and `index=False`.
+1. Save `buffer` to the same geopackage file but with layer name `"buffer"`.
 
     _Construct a figure:_
 
