@@ -2,7 +2,7 @@
 demo.py
 Spring 2022 PJW
 
-Demonstrate projecting data, dissolving layers, and constructing 
+Demonstrate projecting data, dissolving layers, and constructing
 buffers using geopandas.
 """
 
@@ -12,7 +12,7 @@ import fiona
 import os
 
 #%%
-#  
+#
 #  Set up projection number and file names
 #
 
@@ -37,8 +37,8 @@ water  = gpd.read_file(demo_file,layer='water')
 #
 
 county = county.to_crs(epsg=utm18n)
-zips   = zips.to_crs(epsg=utm18n) 
-water  = water.to_crs(epsg=utm18n) 
+zips   = zips.to_crs(epsg=utm18n)
+water  = water.to_crs(epsg=utm18n)
 
 #%%
 #
@@ -69,9 +69,9 @@ water_by_name = water_by_name.reset_index()
 print( water_by_name['FULLNAME'].value_counts().head() )
 
 #%%
-#  
-#  Now find locations within about a mile of water. First, dissolve the water 
-#  layer further so the geometries are combined into a single record. Then 
+#
+#  Now find locations within about a mile of water. First, dissolve the water
+#  layer further so the geometries are combined into a single record. Then
 #  build a 1600 m buffer around it
 #
 
@@ -81,7 +81,7 @@ near_water = water_dis.buffer(1600)
 
 #%%
 #
-#  Clip the zip codes and buffer at the county boundary. The 
+#  Clip the zip codes and buffer at the county boundary. The
 #  keep_geom_type causes geopandas to close clipped polygons.
 #
 
@@ -90,7 +90,7 @@ near_clip = near_water.clip(county,keep_geom_type=True)
 
 #%%
 #
-#  Check whether the output file exists and remove it if it does. 
+#  Check whether the output file exists and remove it if it does.
 #  Then write the layers.
 #
 
@@ -108,9 +108,9 @@ near_clip.to_file(out_file,layer='near_water')
 #  and finally the near_water buffer.
 #
 
-fig1,ax1 = plt.subplots(dpi=300)
-county.plot(color='tan',ax=ax1)
-zips_clip.boundary.plot(color='black',linewidth=0.5,ax=ax1)
-water.plot(color='xkcd:lightblue',ax=ax1)
-near_clip.plot(alpha=0.25,ax=ax1)
-ax1.axis('off')
+fig,ax = plt.subplots(dpi=300)
+county.plot(color='tan',ax=ax)
+zips_clip.boundary.plot(color='black',linewidth=0.5,ax=ax)
+water.plot(color='xkcd:lightblue',ax=ax)
+near_clip.plot(alpha=0.25,ax=ax)
+ax.axis('off')
