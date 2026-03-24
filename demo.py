@@ -8,7 +8,6 @@ buffers using geopandas.
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
-import fiona
 import os
 
 #%%
@@ -24,7 +23,7 @@ out_file = 'demo-output.gpkg'
 #  List the layers in the input file and then read them
 #
 
-layers = fiona.listlayers(demo_file)
+layers = gpd.list_layers(demo_file)
 print( f'Layers in {demo_file}:', layers )
 
 county = gpd.read_file(demo_file,layer='county')
